@@ -100,18 +100,8 @@ jobs:
             gh release upload "$TAG" "$TARBALL" --repo "${{ github.repository }}" --clobber
           else
             echo "Creating release $TAG..."
-            cat > /tmp/release-notes.md << 'EOF'
-          FreeBSD x86_64 build for RustNet
-
-          ## Installation
-          ```bash
-          tar xzf rustnet-<version>-x86_64-unknown-freebsd.tar.gz
-          cd rustnet-<version>-x86_64-unknown-freebsd
-          ./rustnet --help
-          ```
-          EOF
             gh release create "$TAG" "$TARBALL" \
               --repo "${{ github.repository }}" \
               --title "RustNet $TAG (FreeBSD)" \
-              --notes-file /tmp/release-notes.md
+              --notes "FreeBSD x86_64 build for RustNet ${TAG}"
           fi
