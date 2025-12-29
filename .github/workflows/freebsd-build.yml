@@ -1,0 +1,116 @@
+name: FreeBSD Build
+
+on:
+  repository_dispatch:
+    types: [freebsd-build]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.0.0)'
+        required: true
+        type: string
+      rustnet_ref:
+        description: 'Git ref to checkout from rustnet repo'
+        required: false
+        type: string
+        default: ''
+
+env:
+  RUSTNET_REPO: domcyrus/rustnet
+
+jobs:
+  build-freebsd:
+    name: Build FreeBSD x86_64
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Set build variables
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "tag=${{ github.event.client_payload.tag }}" >> "$GITHUB_OUTPUT"
+            echo "ref=${{ github.event.client_payload.rustnet_ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            REF="${{ inputs.rustnet_ref }}"
+            if [ -z "$REF" ]; then
+              REF="${{ inputs.tag }}"
+            fi
+            echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout rustnet source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.RUSTNET_REPO }}
+          ref: ${{ steps.vars.outputs.ref }}
+
+      - name: Build on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y curl libpcap rust
+          run: |
+            set -e
+
+            TAG="${{ steps.vars.outputs.tag }}"
+            ARCHIVE_NAME="rustnet-${TAG}-x86_64-unknown-freebsd"
+
+            # Build release binary (without eBPF - not available on FreeBSD)
+            cargo build --verbose --release --no-default-features
+
+            # Create release directory
+            mkdir -p "${ARCHIVE_NAME}"
+            cp target/release/rustnet "${ARCHIVE_NAME}/"
+
+            # Copy assets if available
+            if [ -d "assets" ]; then
+              mkdir -p "${ARCHIVE_NAME}/assets"
+              cp -r assets/* "${ARCHIVE_NAME}/assets/" || true
+            fi
+
+            # Copy documentation
+            cp README.md "${ARCHIVE_NAME}/" || true
+            cp LICENSE "${ARCHIVE_NAME}/" || true
+
+            # Create tarball
+            tar czf "${ARCHIVE_NAME}.tar.gz" "${ARCHIVE_NAME}"
+
+            echo "Created ${ARCHIVE_NAME}.tar.gz"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: freebsd-x86_64
+          path: rustnet-${{ steps.vars.outputs.tag }}-x86_64-unknown-freebsd.tar.gz
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.vars.outputs.tag }}"
+          TARBALL="rustnet-${TAG}-x86_64-unknown-freebsd.tar.gz"
+
+          # Check if release already exists
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "Release $TAG exists, uploading asset..."
+            gh release upload "$TAG" "$TARBALL" --repo "${{ github.repository }}" --clobber
+          else
+            echo "Creating release $TAG..."
+            gh release create "$TAG" "$TARBALL" \
+              --repo "${{ github.repository }}" \
+              --title "RustNet $TAG (FreeBSD)" \
+              --notes "FreeBSD x86_64 build for RustNet $TAG
+
+Built from [domcyrus/rustnet@$TAG](https://github.com/domcyrus/rustnet/releases/tag/$TAG)
+
+## Installation
+\`\`\`bash
+tar xzf $TARBALL
+cd rustnet-${TAG}-x86_64-unknown-freebsd
+./rustnet --help
+\`\`\`"
+          fi
