@@ -81,7 +81,7 @@ jobs:
             echo "Created ${ARCHIVE_NAME}.tar.gz"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: freebsd-x86_64
           path: rustnet-${{ steps.vars.outputs.tag }}-x86_64-unknown-freebsd.tar.gz
