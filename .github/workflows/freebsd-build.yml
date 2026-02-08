@@ -47,7 +47,7 @@ jobs:
           ref: ${{ steps.vars.outputs.ref }}
 
       - name: Build on FreeBSD
-        uses: vmactions/freebsd-vm@v1
+        uses: vmactions/freebsd-vm@f674f993e17ee7a71c14726b5d96599e59cda724 # v1.4.0
         with:
           usesh: true
           prepare: |
