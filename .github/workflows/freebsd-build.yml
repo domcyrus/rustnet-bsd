@@ -41,7 +41,7 @@ jobs:
           fi
 
       - name: Checkout rustnet source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ env.RUSTNET_REPO }}
           ref: ${{ steps.vars.outputs.ref }}
