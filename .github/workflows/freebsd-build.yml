@@ -66,6 +66,8 @@ jobs:
       - name: Build on FreeBSD
         uses: vmactions/freebsd-vm@80bcb19d617fe71c9db00e6297b16fb184dac498 # v1.4.1
         with:
+          # Pin to 14.2 for forward-compatible binaries (14.x symbols work on 15.x+)
+          release: "14.2"
           usesh: true
           prepare: |
             pkg install -y curl libpcap rust
