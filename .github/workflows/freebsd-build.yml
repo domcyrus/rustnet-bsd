@@ -14,6 +14,11 @@ on:
         required: false
         type: string
         default: ''
+      create_release:
+        description: 'Create a GitHub release (false for test builds)'
+        required: false
+        type: boolean
+        default: true
 
 env:
   RUSTNET_REPO: domcyrus/rustnet
@@ -29,16 +34,28 @@ jobs:
         id: vars
         run: |
           if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            echo "tag=${{ github.event.client_payload.tag }}" >> "$GITHUB_OUTPUT"
-            echo "ref=${{ github.event.client_payload.rustnet_ref }}" >> "$GITHUB_OUTPUT"
+            TAG="${{ github.event.client_payload.tag }}"
+            REF="${{ github.event.client_payload.rustnet_ref }}"
+            CREATE_RELEASE="${{ github.event.client_payload.create_release }}"
           else
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            TAG="${{ inputs.tag }}"
             REF="${{ inputs.rustnet_ref }}"
-            if [ -z "$REF" ]; then
-              REF="${{ inputs.tag }}"
-            fi
-            echo "ref=$REF" >> "$GITHUB_OUTPUT"
+            CREATE_RELEASE="${{ inputs.create_release }}"
           fi
+
+          # Default ref to tag if not provided
+          if [ -z "$REF" ]; then
+            REF="$TAG"
+          fi
+
+          # Default create_release to true if not provided
+          if [ -z "$CREATE_RELEASE" ]; then
+            CREATE_RELEASE="true"
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "create_release=$CREATE_RELEASE" >> "$GITHUB_OUTPUT"
 
       - name: Checkout rustnet source
         uses: actions/checkout@v6
@@ -88,6 +105,7 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub Release
+        if: steps.vars.outputs.create_release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
