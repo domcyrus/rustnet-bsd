@@ -30,6 +30,22 @@ cargo build --release --no-default-features
 
 The `--no-default-features` flag is required because eBPF and Landlock are Linux-specific features.
 
+## GeoIP (Optional)
+
+To show country codes for remote IPs, install GeoLite2 databases:
+
+```bash
+sudo pkg install geoipupdate
+```
+
+Edit `/usr/local/etc/GeoIP.conf` with your free MaxMind credentials, then run:
+
+```bash
+sudo geoipupdate
+```
+
+See the [GeoIP setup guide](https://github.com/domcyrus/rustnet/blob/main/INSTALL.md#geoip-databases-optional) for full instructions.
+
 ## Usage
 
 ```bash
