@@ -32,17 +32,25 @@ The `--no-default-features` flag is required because eBPF and Landlock are Linux
 
 ## GeoIP (Optional)
 
-To show country codes for remote IPs, install GeoLite2 databases:
+To show country codes, city names, and ASN information for remote IPs, install GeoLite2 databases:
 
 ```bash
 sudo pkg install geoipupdate
 ```
 
-Edit `/usr/local/etc/GeoIP.conf` with your free MaxMind credentials, then run:
+Edit `/usr/local/etc/GeoIP.conf` with your free MaxMind credentials and set `EditionIDs`, e.g.:
+
+```
+EditionIDs GeoLite2-City GeoLite2-ASN
+```
+
+Then run:
 
 ```bash
 sudo geoipupdate
 ```
+
+> **Tip:** `GeoLite2-City` is a superset of `GeoLite2-Country` — no need for both.
 
 See the [GeoIP setup guide](https://github.com/domcyrus/rustnet/blob/main/INSTALL.md#geoip-databases-optional) for full instructions.
 
