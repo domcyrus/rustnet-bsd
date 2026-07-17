@@ -64,7 +64,7 @@ jobs:
           ref: ${{ steps.vars.outputs.ref }}
 
       - name: Build on FreeBSD
-        uses: vmactions/freebsd-vm@d1e65811565151536c0c894fff74f06351ed26e6 # v1.4.5
+        uses: vmactions/freebsd-vm@5a72679103d223925653750faa878a143340fbd0 # v1.5.0
         with:
           # Pin to 14.2 for forward-compatible binaries (14.x symbols work on 15.x+)
           release: "14.2"
