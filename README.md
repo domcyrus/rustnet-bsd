@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/domcyrus/rustnet/main/assets/rustnet.svg" alt="RustNet logo" width="96" height="96">
+</p>
+
 # rustnet-bsd
 
 FreeBSD builds for [RustNet](https://github.com/domcyrus/rustnet), a cross-platform network monitoring tool built with Rust.
@@ -67,6 +71,14 @@ Root or elevated privileges are required for packet capture on FreeBSD.
 ## Why a Separate Repo?
 
 FreeBSD builds require the `vmactions/freebsd-vm` action which runs code in a VM. To isolate this from the main repository's secrets and release artifacts, builds are performed here.
+
+## Artwork
+
+The README logo is maintained in the
+[main RustNet repository](https://github.com/domcyrus/rustnet/tree/main/resources/packaging).
+The build workflow includes that repository's `assets/` directory from the
+selected source revision, so release archives inherit its logo automatically.
+These CLI builds do not install a desktop launcher or a system icon.
 
 ## License
 
