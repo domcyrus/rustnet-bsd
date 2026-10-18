@@ -80,6 +80,14 @@ jobs:
             # Build release binary (without eBPF - not available on FreeBSD)
             cargo build --verbose --release --no-default-features
 
+            # Older source refs do not include the native diagnostics fixture.
+            if [ -f examples/native_diagnostics_probe.rs ]; then
+              cargo test --locked -p rustnet-host
+              cargo build --locked --example native_diagnostics_probe --no-default-features
+              pw useradd rustnettest -m
+              su -m rustnettest -c "$PWD/target/debug/examples/native_diagnostics_probe"
+            fi
+
             # Create release directory
             mkdir -p "${ARCHIVE_NAME}"
             cp target/release/rustnet "${ARCHIVE_NAME}/"
